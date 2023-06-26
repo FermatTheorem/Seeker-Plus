@@ -1,0 +1,5 @@
+requests
+requests[socks]
+dnspython
+googlesearch-python
+fake_useragent

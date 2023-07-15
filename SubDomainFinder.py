@@ -1,11 +1,26 @@
 from Scanner import Scanner
 import dns.resolver
 import re
-
+import requests
 
 class SubDomainFinder(Scanner):
+    def __init__(self):
+        super().__init__()
+        self.zoneTransfer = True
+        self.crt = True
+        self.archive = True
+        self.bruteforce = False
+    #todo: getters, setters, bruteforce(?)
+    def subDomainProcess(self, url):
+        if self.zoneTransfer:
+            self.DNSZoneTransfer(url)
+        if self.crt:
+            self.CTLogs(url)
+        if self.archive:
+            self.WaybackMachine(url)
+
     def DNSZoneTransfer(self, url):
-        print("Enumerating with DNS zone transfer...")
+        print("Enumerating subdomains with DNS zone transfer...")
         domain = url.split('//')[-1].split('/')[0]
         resolver = dns.resolver.Resolver()
         resolver.proxies = self.getProxy()
@@ -24,10 +39,10 @@ class SubDomainFinder(Scanner):
         self.addSubdomains(subdomains)
 
     def CTLogs(self, url):
-        print("Enumerating with CT logs in crt.sh...")
+        print("Enumerating subdomains with CT logs in crt.sh...")
         domain = url.split('//')[-1].split('/')[0]
         url = f'https://crt.sh/?q=%.{domain}&output=json'
-        response = self.makeRequest(url)
+        response = self.makeRequest(url, retries=5)
         if not response:
             return
         if response.status_code == 200:
@@ -42,11 +57,11 @@ class SubDomainFinder(Scanner):
             print(f"Unexpected status code: {response.status_code} ({url})")
 
     def WaybackMachine(self, url):
-        print("Enumerating with Wayback Machine...")
+        print("Enumerating subdomains with Wayback Machine...")
         domain = url.split('//')[-1].split('/')[0]
         url = f"https://web.archive.org/cdx/search/cdx?url=*.{domain}/&output=json&collapse=urlkey&page=/"
         subdomains = set()
-        response = self.makeRequest(url)
+        response = self.makeRequest(url, retries=5)
         if not response:
             return
         if response.status_code == 200:

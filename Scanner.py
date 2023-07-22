@@ -1,4 +1,3 @@
-import re
 import requests
 import os
 from time import sleep
@@ -7,8 +6,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, CancelledError
 import logging
 from requests.exceptions import RequestException
 import threading
+import subprocess
 
-class Scanner:
+class Scanner: #todo: move some properties and methods to other classes if they are specific for something
 
     def __init__(self):
         self.proxies = None
@@ -129,7 +129,7 @@ class Scanner:
                 sleep(2)
         return None
 
-    def makeConcurrentRequests(self, targets, method='GET', data={}, retries=1, max_workers=None):
+    def makeConcurrentRequests(self, targets, method='GET', data={}, retries=1, max_workers=None, keep_session=True):
         if not max_workers:
             max_workers = min(self.getThreads(), len(targets))
         results = {}
@@ -137,7 +137,7 @@ class Scanner:
         for i in range(0, len(targets), max_workers):
             urls = targets[i:max_workers + i]
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                futures = {executor.submit(self.makeRequest, url, method, data, retries): url for url in urls}
+                futures = {executor.submit(self.makeRequest, url, method, data, retries, keep_session): url for url in urls}
 
             for future in as_completed(futures):
                 url = futures[future]
@@ -147,22 +147,21 @@ class Scanner:
                         results[url] = result
                 except CancelledError as e:
                     self.logger.error(f"Error processing {url}: {e}")
-                    with lock:  # ensure thread safety when updating the results dictionary
+                    with lock:
                         results[url] = None
 
         return results
 
     def rawHost(self, url):
-        return url.replace("http://", "").replace("https://", "").replace("www.", "").rstrip("/")
+        url = url.split("://")[1] if "://" in url else url
+        return url.replace("www.", "").rstrip("/")
 
     def removeDuplicates(self):
         self.subdomains = {self.rawHost(domain) for domain in self.getSubdomains()}
 
     def validateUrl(self, url):
-        responce = self.makeRequest(url)
-        if not responce:
-            return False
-        return True
+        command = ['ping', '-c', '1', self.rawHost(url)]
+        return subprocess.call(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
 
     def setRandomUA(self):
         self.useRandomUA = True
@@ -174,7 +173,7 @@ class Scanner:
     def getTimeout(self):
         return self.timeout
 
-    def setLoggingLevel(self, level):
+    def setLoggingLevel(self, level): #todo: add logging support for everything
         assert level in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], 'Invalid logging level'
         self.logger.setLevel(level)
 

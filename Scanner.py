@@ -8,12 +8,11 @@ from requests.exceptions import RequestException
 import threading
 import subprocess
 
-class Scanner: #todo: move some properties and methods to other classes if they are specific for something
+class Scanner:
 
     def __init__(self):
         self.proxies = None
         self.neighbors = set()
-        self.subdomains = set()
         self.outputDir = 'output'
         self.headers = {}
         self.target = None
@@ -37,6 +36,12 @@ class Scanner: #todo: move some properties and methods to other classes if they 
     def getNeighbors(self):
         return self.neighbors
 
+    def setSysThreads(self, num):
+        self.sysThreads = num
+
+    def getSysThreads(self):
+        return self.sysThreads
+
     def checkConnection(self, url):
         print("Checking connection to the target...")
         try:
@@ -57,13 +62,14 @@ class Scanner: #todo: move some properties and methods to other classes if they 
     def checkTor(self):
         print("Checking tor configuration...")
         try:
-            response = self.makeRequest('https://check.torproject.org/')
+            response = self.makeRequest('https://check.torproject.org/', retries=5)
             if 'Congratulations. This browser is configured to use Tor.' in response.text:
-                print("Tor is properly being used!")
+                print("Tor is properly being used!\n")
                 return True
         except:
             pass
         print("Tor isn't set up properly. Check your proxy")
+        exit(1)
 
     def setTor(self, port=9050):
         self.setProxy('socks5://localhost:' + str(port))
@@ -75,18 +81,15 @@ class Scanner: #todo: move some properties and methods to other classes if they 
         return self.headers['User-Agent']
 
     def setOutputDir(self, dir='output'):
-        assert os.path.isdir(dir), 'Invalid directory path'
+        if not os.path.isdir(dir):
+            try:
+                os.makedirs(dir)
+            except Exception as e:
+                raise f"Error creating a direcotory {dir}: {e}"
         self.outputDir = dir
 
     def getOutputDir(self):
         return self.outputDir
-
-    def addSubdomains(self, subdomains):
-        self.subdomains.update(subdomains)
-        self.removeDuplicates()
-
-    def getSubdomains(self):
-        return self.subdomains
 
     def setHeaders(self, headers):
         assert type(headers) == dict, 'Headers must be a dictionary'
@@ -156,12 +159,16 @@ class Scanner: #todo: move some properties and methods to other classes if they 
         url = url.split("://")[1] if "://" in url else url
         return url.replace("www.", "").rstrip("/")
 
-    def removeDuplicates(self):
-        self.subdomains = {self.rawHost(domain) for domain in self.getSubdomains()}
-
-    def validateUrl(self, url):
+    def validateUrl(self, url): #we need another way. That one isn't suitable with proxy and brings false positives
         command = ['ping', '-c', '1', self.rawHost(url)]
         return subprocess.call(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+
+    def validateUrls(self, urls):
+        print("Validating urls...")
+        max_workers = min(self.getSysThreads(), len(urls))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(self.validateUrl, url) for url in urls]
+        return [url for future, url in zip(futures, urls) if future.result()]
 
     def setRandomUA(self):
         self.useRandomUA = True

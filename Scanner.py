@@ -6,7 +6,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, CancelledError
 import logging
 from requests.exceptions import RequestException
 import threading
-import subprocess
 
 class Scanner:
 
@@ -159,9 +158,12 @@ class Scanner:
         url = url.split("://")[1] if "://" in url else url
         return url.replace("www.", "").rstrip("/")
 
-    def validateUrl(self, url): #we need another way. That one isn't suitable with proxy and brings false positives
-        command = ['ping', '-c', '1', self.rawHost(url)]
-        return subprocess.call(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+    def validateUrl(self, url):
+        try:
+            self.resolver.resolve(url, 'A')
+            return True
+        except:
+            return False
 
     def validateUrls(self, urls):
         print("Validating urls...")

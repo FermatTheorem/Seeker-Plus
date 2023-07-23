@@ -4,6 +4,7 @@ import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+
 class SubDomainFinder(Scanner):
     def __init__(self):
         super().__init__()

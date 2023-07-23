@@ -67,9 +67,9 @@ def setup(scan, args):
     scan.setTimeout(args.timeout)
     scan.setThreads(args.threads)
     scan.setSysThreads(args.sThreads)
-    scan.setZoneTransfer(args.zone)
-    scan.setCrt(args.crt)
-    scan.setArchive(args.archive)
+    scan.setZoneTransfer(args.zone_off)
+    scan.setCrt(args.crt_off)
+    scan.setArchive(args.archive_off)
     if args.tor:
         scan.setTor()
     if args.tor_port:

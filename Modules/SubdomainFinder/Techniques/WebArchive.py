@@ -5,13 +5,13 @@ import re
 class WebArchive(Engine):
 
     def process(self, url):
-        print("Enumerating subdomains with Wayback Machine...")
+        self.log_info("Enumerating subdomains with Wayback Machine...")
         domain = self.raw_host(url)
         url = f"https://web.archive.org/cdx/search/cdx?url=*.{domain}/&output=json&collapse=urlkey&page=/"
         subdomains = set()
         response = self.make_request(url, retries=5, keep_session=False)
         if not response:
-            self.logger.log_error("Unable to connect to the Wayback Machine\n")
+            self.log_error("Unable to connect to the Wayback Machine\n")
             return
         if response.status_code == 200:
             snapshots = response.json()
@@ -23,4 +23,4 @@ class WebArchive(Engine):
                     subdomains.add(subdomain)
             return subdomains
         else:
-            self.logger.log_info(f"Unexpected status code: {response.status_code} ({url})")
+            self.log_error(f"Unexpected status code: {response.status_code} ({url})")

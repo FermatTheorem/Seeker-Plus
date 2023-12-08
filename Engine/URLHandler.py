@@ -5,9 +5,8 @@ from typing import List, Tuple, Optional
 
 
 class URLHandler:
-    def __init__(self) -> None:
-        self.target: Optional[str] = None
-        self.num_threads: int = 5
+    target: Optional[str] = None
+    num_threads: int = 5
 
     def raw_host(self, url: str) -> str:
         parsed_url = urlparse(self.get_url(url))

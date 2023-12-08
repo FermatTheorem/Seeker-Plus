@@ -3,16 +3,15 @@ from Modules.SubdomainFinder.Techniques.CTLogs import CTLogs
 from Modules.SubdomainFinder.Techniques.DnsZoneTransfer import DnsZoneTransfer
 from Modules.SubdomainFinder.Techniques.Hackertarget import Hackertarget
 from Modules.SubdomainFinder.Techniques.WebArchive import WebArchive
+from Engine.Engine import Engine
 
-
-class SubdomainFinder(Bruteforce, CTLogs, DnsZoneTransfer, Hackertarget, WebArchive):
+class SubdomainFinder(Engine):
     def __init__(self):
-        super().__init__()
         self.subdomains = set()
-        self._zone_transfer = True
-        self._crt = True
-        self._archive = True
-        self._hackertarget = True
+        self._zone_transfer = False
+        self._crt = False
+        self._archive = False
+        self._hackertarget = False
         self._bruteforce = False
 
     def add_subdomains(self, subdomains):
@@ -40,7 +39,7 @@ class SubdomainFinder(Bruteforce, CTLogs, DnsZoneTransfer, Hackertarget, WebArch
             technique = Bruteforce()
             self.add_subdomains(technique.process(url))
         self.file_write("Unvalidated_subdomains.txt", self.get_subdomains())
-        print(f"Found {len(self.get_subdomains())} subdomains. Results stored in {self.get_output_dir()}")
+        self.log_info(f"Found {len(self.get_subdomains())} subdomains. Results stored in {self.get_output_dir()}")
 
     def _set_zone_transfer(self, value):
         self._zone_transfer = value

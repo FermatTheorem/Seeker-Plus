@@ -1,0 +1,99 @@
+.config-key {
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.config-value {
+    margin-left: 20px;
+}
+
+textarea.form-control {
+    height: auto;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.config-header {
+    padding: 10px;
+}
+
+.card {
+    transition: background-color 0.3s;
+    position: relative; /* Add position relative */
+}
+
+/* This rule ensures only the topmost card hovered changes color */
+.card:hover {
+    background-color: #f8f9fa;
+}
+
+.card:hover > .card {
+    background-color: transparent; /* Make child cards transparent on hover */
+}
+
+/* Optional: Add a shadow to the hovered card for better emphasis */
+.card:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Reset the shadow for child cards */
+.card:hover > .card {
+    box-shadow: none;
+}
+
+.btn-delete {
+    margin-top: -10px; /* Adjust position if needed */
+    margin-right: -10px;
+}
+
+.add-new-container {
+    text-align: center;
+    cursor: pointer;
+    background-color: #f0f0f0; /* Light background for visibility */
+}
+
+.add-new-container .plus-sign {
+    font-size: 24px; /* Large plus sign */
+    color: #28a745; /* Green color or choose as per your design */
+}
+
+.modal-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-card {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%; /* Increased width */
+    max-width: 500px; /* Maximum width */
+    padding: 20px;
+    background-color: white;
+    border-radius: 0.25rem; /* Rounded edges */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+}
+
+/* Additional styles for buttons and elements inside the modal */
+.btn-block {
+    width: 80%; /* Wider buttons */
+    margin: auto; /* Center align buttons */
+}
+
+.modal-card input, .modal-card select {
+    width: 80%; /* Wider input and select */
+    margin: auto; /* Center align input and select */
+}
+
+.modal-card h5 {
+    margin-bottom: 20px; /* More space below the title */
+}

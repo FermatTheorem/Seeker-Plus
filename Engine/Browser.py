@@ -1,13 +1,13 @@
 from selenium import webdriver
-from RequestHadler import RequestHandler
+from HttpClient import RequestHandler
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from config import CONFIG, BROWSER_OPTIONS, HEADLESS_BROWSER
 
-
+_conf = CONFIG["Browser"]
 class Browser(RequestHandler):
-    def __init__(self, headless=True, options=None):
-        super().__init__()
-        self.headless = headless
+    def __init__(self, headless=HEADLESS_BROWSER, options=BROWSER_OPTIONS):
+        self.headless = _conf["headless"]
         self.options = options or self._get_default_options()
         self.driver = self._create_driver()
 
@@ -54,15 +54,15 @@ class Browser(RequestHandler):
             self.driver.quit()
 
 
-# Example usage:
-if __name__ == "__main__":
-
-    # Create a Firefox browser instance with custom options
-    firefox_browser = Browser(
-        headless=False,
-    )
-
-    # Perform requests or other actions as needed
-    firefox_browser.single_request("google.com")
-    # Quit the browsers
-    firefox_browser.quit()
+# # Example usage:
+# if __name__ == "__main__":
+#
+#     # Create a Firefox browser instance with custom options
+#     firefox_browser = Browser(
+#         headless=False,
+#     )
+#
+#     # Perform requests or other actions as needed
+#     firefox_browser.single_request("google.com")
+#     # Quit the browsers
+#     firefox_browser.quit()

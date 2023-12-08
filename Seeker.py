@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-import argparse
 from Engine.Loader import load_modules
 from Crawler.Crawler import Crawler
 from Engine.Engine import Engine
+from config import CONFIG
 
 
 def print_banner():
@@ -41,14 +40,17 @@ class Seeker(Engine):
             self._crawler.process()
 
     def _configure(self, module: object) -> None:
-        module.set_target("https://www.kantiana.ru/")
-        module.set_response_timeout(60)
-        module.use_tor_proxy()
-        module.use_random_user_agent = True
-        module.set_output_dir("Output")
-        module.set_max_parallel_requests(50)
-        if not module.check_tor_proxy():
-            raise "Tor isn't set up correctly"
+        module.set_target(CONFIG["Target"])
+        module.set_response_timeout(CONFIG["HttpClient"]["response_timeout"])
+        # module.use_tor_proxy()
+        module.use_random_user_agent = CONFIG["HttpClient"]["use_random_user_agent"]
+        module.set_output_dir(CONFIG["General"]["output_directory"])
+        module.set_max_parallel_requests(CONFIG["HttpClient"]["max_parallel_requests"])
+        # if not module.check_tor_proxy():
+        #     raise "Tor isn't set up correctly"
 
+if not CONFIG or not CONFIG["General"]:
+    print("Incorrect config")
+    exit(1)
 scanner = Seeker()
 scanner.process()

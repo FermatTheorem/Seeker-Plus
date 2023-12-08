@@ -1,0 +1,104 @@
+Target: https://www.example.com
+
+General:
+ output_directory: Output
+ modules_directory: Modules
+ log_file: application.log
+
+HttpClient:
+ headers:
+  User-Agent: Mozilla/5.0 (Linux; Android 10; SM-A307G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Mobile Safari/537.36
+
+ use_random_user_agent: true
+ response_timeout: 10
+ max_parallel_requests: 5
+
+ http_proxy:
+  enabled: 0
+  http_address: 127.0.0.1
+  http_port: 8080
+
+ https_proxy:
+  enabled: 0
+  https_address: 127.0.0.1
+  https_port: 8080
+
+ socks5_proxy:
+  enabled: 0
+  socks5_address: 127.0.0.1
+  socks5_port: 9050
+  check_tor: true
+
+
+
+Modules:
+ SubdomainFinder:
+  enabled: true
+  needs_crawl: false
+
+  DNS_Zone_Transfer:
+   enabled: true
+
+  CT_Logs:
+   enabled: true
+
+  Hackertarget_API:
+   enabled: true
+
+  WebArchive:
+   enabled: true
+
+  Bruteforce:
+   enabled: true
+   wordlist: Misc/subdomains-top1million-5000.txt
+   dns_servers:
+    - "8.8.8.8"  # Google Primary DNS
+    - "8.8.4.4"  # Google Secondary DNS
+    - "1.1.1.1"  # Cloudflare Primary DNS
+    - "1.0.0.1"  # Cloudflare Secondary DNS
+    - "9.9.9.9"  # Quad9 Primary DNS
+    - "149.112.112.112"  # Quad9 Secondary DNS
+   wildcard_probe_number: 3
+   max_concurrent_tasks: 50
+
+ NeighborFinder:
+  enabled: false
+  needs_crawl: false
+
+ SQLi:
+  enabled: false
+  needs_crawl: true
+
+Browser:
+ enabled: false
+ headless: true
+ preferences:
+  network.proxy.type: 0
+  #todo
+
+Crawler:
+ use_webarchive: true
+ static_extensions:
+  - css
+  - js
+  - woff
+  - woff2
+  - png
+  - jpg
+  - jpeg
+  - gif
+  - svg
+  - ico
+  - pdf
+  - txt
+  - csv
+  - xml
+  - ttf
+  - eot
+  - doc
+  - xls
+  - docx
+  - cur
+  - htc
+  - rtf
+  - ppt

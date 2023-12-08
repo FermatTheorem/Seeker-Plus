@@ -10,31 +10,34 @@ class NeighborFinder(Engine):
         self._hackertarget_api = True
 
     def process(self):
+        #temprorary disabled
+        return None
+
         if self._get_hackertarget_reverse() and self._hackertarget_api:
             self._hackertarget_reverse(self.get_target())
         self.file_write("Unvalidated_neighbors.txt", self._get_neighbors())
-        print(f"Neighbor enumeration finished. Results stored in {self.get_output_dir()}")
+        self.log_info(f"Neighbor enumeration finished. Results stored in {self.get_output_dir()}")
 
     def _hackertarget_reverse(self, url):
-        print("Enumerating websites nearby with Hackertarget...")
+        self.log_info("Enumerating websites nearby with Hackertarget...")
         ip = self.get_ip(url)
         if ip:
             url = f"https://api.hackertarget.com/reverseiplookup/?q={ip}"
             response = self.make_request(url, retries=5, keep_session=False)
             if not response:
-                print("Unable to connect to Hackertarget")
+                self.log_error("Unable to connect to Hackertarget")
             if response.status_code == 200:
                 if 'API count exceeded' in response.text:
-                    print("API count exceeded\n")  # todo: deal with api keys
+                    self.log_error("API count exceeded")  # todo: deal with api keys
                     self._hackertarget_api = False
                     return
                 neighbors = list(set([self.raw_host(url) for url in response.text.split("\n")]))
                 num = len(self._get_neighbors())
                 self._add_neighbors(neighbors)
-                print(f"Success! Found {len(self._get_neighbors()) - num} new websites nearby\n")
+                self.log_info(f"Success! Found {len(self._get_neighbors()) - num} new websites nearby\n")
                 return
             else:
-                print(f"Unexpected status code: {response.status_code} ({url})")
+                self.log_error(f"Unexpected status code: {response.status_code} ({url})")
 
     def _add_neighbors(self, neighbors):
         self._neighbors.update(neighbors)

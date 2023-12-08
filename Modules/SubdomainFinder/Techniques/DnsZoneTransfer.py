@@ -5,7 +5,7 @@ import dns.resolver
 class DnsZoneTransfer(Engine):
 
     def process(self, url):
-        print("Enumerating subdomains with DNS zone transfer...")
+        self.log_info("Enumerating subdomains with DNS zone transfer...")
         domain = self.raw_host(url)
         resolver = dns.resolver.Resolver()
         resolver.proxies = self.get_proxy()
@@ -20,13 +20,13 @@ class DnsZoneTransfer(Engine):
                         for host in zone:
                             subdomain = str(host)
                             subdomains.add(subdomain)
-                            self.logger.log_info(f"Discovered subdomain: {subdomain}")
+                            self.log_info(f"Discovered subdomain: {subdomain}")
                     except Exception as e:
-                        self.logger.log_error(f"Error during zone transfer: {e}")
+                        self.log_exception(f"Error during zone transfer: {e}")
         except dns.resolver.NXDOMAIN:
-            self.logger.log_error("Domain not found.")
+            self.log_exception("Domain not found.")
         except dns.exception.Timeout:
-            self.logger.log_error("DNS query timed out.")
+            self.log_exception("DNS query timed out.")
         except Exception as e:
-            self.logger.log_error(f"An error occurred: {e}")
+            self.log_exception(f"An error occurred: {e}")
         return subdomains

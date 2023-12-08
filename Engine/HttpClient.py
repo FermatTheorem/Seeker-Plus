@@ -4,18 +4,20 @@ from fake_useragent import UserAgent
 from .Logger import Logger
 from .URLHandler import URLHandler
 from typing import List, Optional, Union, Dict, Iterable
+from config import CONFIG
+
+_conf = CONFIG["HttpClient"]
 
 
 class RequestHandler(URLHandler, Logger):
-    def __init__(self) -> None:
-        super().__init__()
-        self.session: Optional[httpx.Client] = None
-        self.headers: Dict[str, str] = {'User-Agent': "Mozilla/5.0 (Linux; Android 10; SM-A307G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Mobile Safari/537.36"}
-        self.response_timeout: float = 10.0
-        self.max_parallel_requests: int = 5
-        self.proxy: Optional[Dict[str, str]] = None
-        self.logger: Logger = Logger()
-        self.use_random_user_agent: bool = True
+
+    session: Optional[httpx.Client] = None
+    headers: Dict[str, str] = _conf["headers"]
+    response_timeout: float = _conf["response_timeout"]
+    max_parallel_requests: int = _conf["max_parallel_requests"]
+    proxy: Optional[Dict[str, str]] = None
+    logger: Logger = Logger()
+    use_random_user_agent: bool = _conf["use_random_user_agent"]
 
     def set_user_agent(self, user_agent: str) -> None:
         self.headers['User-Agent'] = user_agent
@@ -87,13 +89,12 @@ class RequestHandler(URLHandler, Logger):
             keep_session: bool = False
     ) -> Optional[httpx.Response]:
         url = self.get_url(url)
-        print(url)
         for _ in range(retries + 1):
             if not keep_session or self.session is None:
                 self.session = httpx.Client(proxies=self.proxy)
                 if self.use_random_user_agent:
                     self.headers['User-Agent'] = self.get_random_user_agent()
-            self.logger.log_info(f"Making a {method.upper()} request to {url}")
+            self.log_info(f"Making a {method.upper()} request to {url}")
             try:
                 if method.lower() == 'get':
                     response = self.session.get(url, params=data, headers=self.headers, timeout=self.response_timeout)
@@ -101,13 +102,13 @@ class RequestHandler(URLHandler, Logger):
                     response = self.session.post(url, data=data, headers=self.headers, timeout=self.response_timeout)
                 else:
                     raise ValueError("Unsupported HTTP method: {}".format(method))
-                self.logger.log_info(f"Received a {response.status_code} status code")
+                self.log_info(f"Received a {response.status_code} status code")
                 return response
 
             except Exception as e:
                 if keep_session:
                     self.session = None
-                self.logger.log_error(f"Error making request to {url}: {str(e)}")
+                self.log_error(f"Error making request to {url}: {str(e)}")
                 continue
 
     def make_parallel_requests(

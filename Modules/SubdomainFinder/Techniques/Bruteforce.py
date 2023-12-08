@@ -1,97 +1,138 @@
+import asyncio
+import random
+import string
+from typing import AsyncGenerator, Optional, Dict, List, Set
+import dns.asyncresolver
+import dns.exception
+import dns.name
+from dns.rdtypes.IN.A import A
+from dns.rdtypes.IN.AAAA import AAAA
+
 from Engine.Engine import Engine
-from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
-from time import time
-import threading
-import dns.resolver
+
+_WILDCARD_PROBES: int = 3
+_MAX_CONCURRENT_TASKS: int = 50  # Limiting the number of concurrent tasks
 
 
 class Bruteforce(Engine):
+    _wordlist_path: str = "Misc/subdomains-top1million-5000.txt"
+    _potential_subdomains: List[str] = []
+    _dns_resolver: dns.asyncresolver.Resolver = dns.asyncresolver.Resolver()
+    _concurrency_semaphore: asyncio.Semaphore = asyncio.Semaphore(value=_MAX_CONCURRENT_TASKS)
+    _wildcard_addresses: Optional[Set[str]] = None
+    _subdomains_checked_count: int = 0
+    _found_subdomains: Set[str] = set()
+    _dns_servers: List[str] = [
+        "8.8.8.8",  # Google Primary DNS
+        "8.8.4.4",  # Google Secondary DNS
+        "1.1.1.1",  # Cloudflare Primary DNS
+        "1.0.0.1",  # Cloudflare Secondary DNS
+        "9.9.9.9",  # Quad9 Primary DNS
+        "149.112.112.112",  # Quad9 Secondary DNS
+    ]
 
     def __init__(self):
-        super().__init__()
-        self._resolver = dns.resolver.Resolver()
-        self._resolver.nameservers = ['8.8.8.8', '8.8.4.4']
-        self._available = []
-        self._total_subdomains = 0
-        self._checked_subdomains = 0
-        self._wordlist = "Misc/wordlist.txt"
+        self._populate_subdomains_from_wordlist()
 
-    def process(self, url):
-        print("Preparing for bruteforce. It wouldn't take more than a minute...\n")
-        subdomains = self._get_list(url)
-        self._resolver.nameservers += self._check_nameservers(
-            self._get_nameservers())  # todo: it doesn't speed anything up. we need another way
-        threads = min(self.get_sys_threads(), len(subdomains))
-        print(f'Bruteforcing. It may take some time...')
-        self._start_progress_printing()
-        with ThreadPoolExecutor(max_workers=threads) as executor:
-            executor.map(self._check_subdomain, subdomains)
-        return self._available
+    def _populate_subdomains_from_wordlist(self) -> None:
+        with self.open_file(self._wordlist_path) as file:
+            for line in file:
+                self._potential_subdomains.append(line.strip())
+        self.log_info(f"Read {len(self._potential_subdomains)} lines from {self._wordlist_path}")
 
-    def _get_list(self, url): #todo: do we keep everything in memory?
-        with open(self._wordlist, 'r') as f:
-            subs = [f"{subdomain.strip()}.{self.raw_host(url)}" for subdomain in f.readlines()]
-            self._total_subdomains = len(subs)
-            return subs
+    def process(self, url: str) -> Set[str]:
+        asyncio.run(self._process(self.raw_host(url)))
+        return self._found_subdomains
 
-    def _check_subdomain(self, subdomain):
-        subdomain = subdomain.strip()
-        self._checked_subdomains += 1
+    async def _process(self, url: str) -> None:
+        log_task = asyncio.create_task(self._log_progress())
         try:
-            self._resolver.resolve(subdomain, 'A')
-            self._available.append(subdomain)
-            return True
-        except:
-            return False
+            async for subdomain in self._enumerate_subdomains(url):
+                if subdomain:
+                    self._found_subdomains.add(subdomain["name"])
+        finally:
+            log_task.cancel()
 
-    def _print_progress(self):
-        print(f"Checked {self._checked_subdomains}/{self._total_subdomains} subdomains...")
+    async def _enumerate_subdomains(self, url: str) -> AsyncGenerator[str, None]:
+        self.log_info(f"Starting subdomain bruteforce for {url}")
+        await self._initialize_wildcard(url)
+        self.log_info(f"Initialized wildcard: {self._wildcard_addresses}")
+        async for subdomain in self._bruteforce_subdomains(dns.name.from_text(url)):
+            yield subdomain
 
-    def _start_progress_printing(self):
-        def print_progress_every_minute():
-            while self._checked_subdomains < self._total_subdomains:
-                self._print_progress()
-                time.sleep(10)
+    async def _initialize_wildcard(self, domain: str) -> None:
+        self.log_info(f"Initializing wildcard for {domain}")
+        domain_name = dns.name.from_text(domain)
+        self._wildcard_addresses = await self._detect_wildcard(domain_name)
 
-        progress_thread = threading.Thread(target=print_progress_every_minute)
-        progress_thread.start()
+    async def _detect_wildcard(self, domain: dns.name.Name) -> Set[str]:
+        self.log_info(f"Detecting wildcard for {domain}")
+        random_labels = [self._random_string() for _ in range(_WILDCARD_PROBES)]
+        wildcard_detection_tasks = [self._attempt_resolution(domain, label, wildcard_ok=True) for label in
+                                    random_labels]
+        wildcard_addresses = set()
+        for task in asyncio.as_completed(wildcard_detection_tasks):
+            if subdomain_info := await task:
+                wildcard_addresses.update(subdomain_info['ip_addresses'])
+        return wildcard_addresses
 
-    def _get_nameservers(self):
-        response = self.make_request("https://public-dns.info/nameservers.txt", retries=5)
-        if response.status_code == 200:
-            nameservers = response.text.split("\n")
-            return nameservers
-        return ["8.8.8.8"]
+    async def _bruteforce_subdomains(self, domain: dns.name.Name) -> AsyncGenerator[Dict[str, List[str]], None]:
+        self.log_info(f"Bruteforcing subdomains for {domain}")
+        tasks = set()
+        for label in self._potential_subdomains:
+            task = asyncio.ensure_future(self._attempt_resolution(domain, label, wildcard_ok=False))
+            tasks.add(task)
 
-    def _check_nameserver(self, nameserver):
-        resolver = dns.resolver.Resolver()
-        resolver.nameservers = [nameserver]
-        try:
-            resolver.resolve('google.com', 'A')
-            return True
-        except:
-            return False
+            if len(tasks) >= _MAX_CONCURRENT_TASKS:
+                done, tasks = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                for result in done:
+                    subdomain_info = await result
+                    if subdomain_info:
+                        self.log_info(f"Found subdomain: {subdomain_info}")
+                    yield subdomain_info
 
-    def _check_nameservers(self, nameservers):
-        valids = []
-        threads = self.get_sys_threads()
-        with ThreadPoolExecutor(max_workers=threads) as executor:
-            futures = {executor.submit(self._check_nameserver, ns): ns for ns in nameservers}
-            done, not_done = wait(futures, timeout=60, return_when=FIRST_COMPLETED)
-            for future in done:
-                try:
-                    if future.result():
-                        valids.append(futures[future])
-                except:
-                    pass
+        for task in asyncio.as_completed(tasks):
+            subdomain_info = await task
+            if subdomain_info:
+                self.log_info(f"Found subdomain: {subdomain_info}")
+            yield subdomain_info
 
-            for future in not_done:
-                future.cancel()
+    async def _attempt_resolution(self, domain: dns.name.Name, label: str, *, wildcard_ok: bool) -> Optional[
+        Dict[str, List[str]]]:
+        subdomain_candidate = dns.name.from_text(label, origin=domain)
+        self._subdomains_checked_count += 1
+        return await self._resolve_subdomain(subdomain_candidate, wildcard_ok=wildcard_ok)
 
-        return valids
+    async def _resolve_subdomain(self, domain: dns.name.Name, *, wildcard_ok: bool) -> Optional[Dict[str, List[str]]]:
+        async with self._concurrency_semaphore:
+            try:
+                selected_dns_server = random.choice(self._dns_servers)
+                self._dns_resolver.nameservers = [selected_dns_server]
+                dns_query_answers = await self._dns_resolver.resolve(str(domain), 'A')
+            except dns.exception.DNSException:
+                return None
 
-    def _set_wordlist(self, wordlist):
-        self._wordlist = wordlist
+        ip_addresses = self._get_ip_addresses(dns_query_answers)
+        if not wildcard_ok and self._wildcard_addresses is not None:
+            ip_addresses = [ip for ip in ip_addresses if ip not in self._wildcard_addresses]
+            if not ip_addresses:
+                return None
 
-    def _get_wordlist(self):
-        return self._wordlist
+        return {'name': domain.to_text(omit_final_dot=True), 'ip_addresses': ip_addresses}
+
+    async def _log_progress(self) -> None:
+        while True:
+            self.log_info(f"Checked {self._subdomains_checked_count}/{len(self._potential_subdomains)} subdomains")
+            await asyncio.sleep(10)
+
+    def _get_ip_addresses(self, answers: dns.resolver.Answer) -> List[str]:
+        ip_addresses = []
+        for record in answers.rrset:
+            if isinstance(record, (A, AAAA)):
+                ip_addresses.append(record.to_text())
+        return ip_addresses
+
+    def _random_string(self) -> str:
+        alpha = string.ascii_lowercase + string.digits
+        label_length = random.randint(16, 32)
+        return "".join(random.choice(alpha) for _ in range(label_length))

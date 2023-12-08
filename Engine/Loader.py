@@ -1,6 +1,7 @@
 import importlib
 import os
 from typing import List, Type
+from config import CONFIG
 
 
 def load_modules(modules_path: str) -> List[Type]:
@@ -9,8 +10,14 @@ def load_modules(modules_path: str) -> List[Type]:
         for directory in dirs:
             module_name = os.path.splitext(directory)[0]
             module_path = os.path.join(root, directory, f"{module_name}.py")
-            if os.path.exists(module_path):
+            if os.path.exists(module_path) and _module_enabled(module_name):
                 module_path = f"Modules.{directory}.{module_name}"
                 new_class = getattr(importlib.import_module(module_path), module_name)
                 result.append(new_class)
     return result
+
+def _module_enabled(module_name: str) -> bool:
+    module_settings = CONFIG["Modules"].get(module_name, None)
+    if not module_settings:
+        return False
+    return module_settings.get("enabled", False)

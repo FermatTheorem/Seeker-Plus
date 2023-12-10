@@ -8,10 +8,10 @@ from Engine.Engine import Engine
 class SubdomainFinder(Engine):
     def __init__(self):
         self.subdomains = set()
-        self._zone_transfer = False
+        self._zone_transfer = True
         self._crt = False
         self._archive = False
-        self._hackertarget = False
+        self._hackertarget = True
         self._bruteforce = False
 
     def add_subdomains(self, subdomains):

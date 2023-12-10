@@ -1,26 +1,33 @@
 import os
-from typing import Iterable, Union
+from typing import Iterable
 from config import CONFIG
-
-_conf = CONFIG["General"]
 
 
 class FileHandler:
-    output_dir: str = _conf["output_directory"]
 
-    def set_output_dir(self, value: str) -> None:
-        self.output_dir = value
+    @staticmethod
+    def set_output_dir(value: str) -> None:
+        if not isinstance(CONFIG.get("General", None), dict):
+            CONFIG["General"] = {}
+        CONFIG["General"]["output_directory"] = value
 
-    def get_output_dir(self) -> str | None:
-        return self.output_dir
+    @staticmethod
+    def get_output_dir() -> str:
+        output_dir = CONFIG.get("General", {}).get("output_directory", None)
+        return "Output" if not output_dir else output_dir
 
-    def file_write(self, filename: str, content: Union[str, Iterable[str]]) -> None:
-        if not os.path.exists(self.output_dir):
+    @staticmethod
+    def file_write(filename: str, content: str | Iterable[str], output_directory: str = None) -> None:
+        output_dir = FileHandler.get_output_dir() if not output_directory else output_directory
+        if not output_dir or not isinstance(output_dir, str):
+            raise ValueError("Output directory must be a non-empty string")
+
+        if not os.path.exists(output_dir):
             try:
-                os.makedirs(self.output_dir)
+                os.makedirs(output_dir)
             except OSError as e:
-                raise RuntimeError(f"Failed to create directory {self.output_dir}: {str(e)}")
-        full_path = os.path.join(self.output_dir, filename)
+                raise RuntimeError(f"Failed to create directory {output_dir}: {str(e)}")
+        full_path = os.path.join(output_dir, filename)
 
         try:
             with open(full_path, "w", encoding="utf-8") as file:
@@ -30,27 +37,19 @@ class FileHandler:
                     for line in content:
                         file.write(line + "\n")
                 else:
-                    raise ValueError("Content must be an iterable or a string.")
+                    raise ValueError("Content must be an iterable or a string")
         except Exception as e:
             raise RuntimeError(f"Failed to write to {full_path}: {str(e)}")
 
     @staticmethod
     def open_file(filename: str, folder: str = "", mode: str = "r", encoding: str = "utf-8"):
         if not filename or not isinstance(filename, str) or not isinstance(folder, str):
-            return None
-        folder = folder if folder.startswith("/") else "/".join([_conf["root_directory"], folder])
-        fullname = filename if filename.startswith("/") else "/".join([folder, filename])
-        return open(fullname, mode=mode, encoding=encoding)
+            raise ValueError("Unable open a file. Both filename and folder must be a string")
 
-# # Example usage:
-# if __name__ == "__main__":
-#     handler = FileHandler()
-#     handler.set_output_dir("output_directory")  # Set the output directory
-#
-#     content = ["Line 1", "Line 2", "Line 3"]
-#
-#     try:
-#         handler.file_write("output.txt", content)
-#         print("File written successfully.")
-#     except Exception as e:
-#         print(f"An error occurred: {str(e)}")
+        folder = folder if folder.startswith("/") else "/".join([CONFIG["General"]["root_directory"], folder])
+        fullname = filename if filename.startswith("/") else "/".join([folder, filename])
+
+        if not os.path.exists(fullname) or not os.path.isfile(fullname):
+            raise RuntimeError(f"'{fullname}' doesn't exist or is not a file")
+
+        return open(fullname, mode=mode, encoding=encoding)

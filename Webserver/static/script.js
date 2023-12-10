@@ -470,11 +470,9 @@ function renderMainPage(config, parentElement) {
     const targetCard = new InputCard('Target', 0, parentElement, value = config["Target"] || '', keyPath = ["Target"], allowDelete=false);
     parentElement.appendChild(targetCard.element);
 
-    // Application log
     const appLogCard = new LogCard('Application Log', 0, parentElement, 'output/application.log');
     parentElement.appendChild(appLogCard.element);
 
-    // Module logs
     Object.entries(config.Modules || {}).forEach(([moduleName, moduleConfig]) => {
         if (moduleConfig.enabled) {
             const moduleLogCard = new LogCard(`${moduleName} Log`, 0, parentElement, `${moduleName}.log`);
@@ -482,7 +480,6 @@ function renderMainPage(config, parentElement) {
         }
     });
 
-    // Start button
     const startButton = document.createElement('button');
     startButton.textContent = 'Start';
     startButton.classList.add('btn', 'btn-primary', 'btn-start-process');
@@ -495,7 +492,6 @@ function renderMainPage(config, parentElement) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Fetch and setup for Config page
     fetchConfig();
     makeMainPage();
     openPage('Main', document.getElementsByClassName('tablinks')[0]);

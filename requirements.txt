@@ -4,3 +4,6 @@ typing~=3.7.4.3
 httpx~=0.25.0
 fake_useragent
 httpx[socks]
+Scrapy~=2.11.0
+PyYAML~=6.0.1
+flask~=3.0.0

@@ -8,7 +8,8 @@ class URLHandler:
     target: Optional[str] = None
     num_threads: int = 5
 
-    def raw_host(self, url: str) -> str:
+    def raw_host(self, url: str | None = None) -> str:
+        url = self.target if url is None else url
         parsed_url = urlparse(self.get_url(url))
         hostname = parsed_url.hostname if parsed_url.hostname[:4] != "www." else parsed_url.hostname[4:]
         return hostname
@@ -19,7 +20,8 @@ class URLHandler:
     def get_target(self) -> Optional[str]:
         return self.target
 
-    def get_ip(self, url: str) -> Optional[str]:
+    def get_ip(self, url: str | None = None) -> Optional[str]:
+        url = self.target if url is None else url
         host = self.raw_host(url)
         try:
             ip = socket.gethostbyname(host)
@@ -60,11 +62,13 @@ class URLHandler:
 
         return valid_urls, invalid_urls
 
-    def raw_path(self, url: str) -> str:
+    def raw_path(self, url: str | None = None) -> str:
+        url = self.target if url is None else url
         parsed_url = urlparse(url)
         return parsed_url.netloc + parsed_url.path
 
-    def get_url(self, url: str) -> str:
+    def get_url(self, url: str | None = None) -> str:
+        url = self.target if url is None else url
         parsed_url = urlparse(url)
 
         if not parsed_url.scheme:
@@ -77,27 +81,3 @@ class URLHandler:
             url = urlunparse(url_parts)
 
         return url
-
-# url_handler = URLHandler()
-#
-# # Set and get the target URL
-# url_handler.set_target("http://www.example.com?parameter=value")
-# print(url_handler.get_target())  # Output: http://www.example.com?parameter=value
-#
-# # Get the raw hostname
-# print(url_handler.raw_host("http://www.example.com?parameter=value"))  # Output: example.com
-#
-# # Get the IP address of a URL
-# print(url_handler.get_ip("http://www.example.com"))  # Output: IP address or None
-#
-# # Validate a URL
-# print(url_handler.validate_url("http://www.example.com"))  # Output: True or False
-#
-# # Validate a list of URLs
-# url_list = ["http://www.example.com", "http://www.iaxcxznvalid-url.com"]
-# valid_urls, invalid_urls = url_handler.validate_urls(url_list)
-# print("Valid URLs:", valid_urls)
-# print("Invalid URLs:", invalid_urls)
-#parsed_url.scheme
-# # Get the raw path
-# print(url_handler.raw_path("https://www.example.com/path/to/script?parameter=value"))  # Output: example.com/path/to/script

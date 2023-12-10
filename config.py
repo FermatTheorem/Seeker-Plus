@@ -1,32 +1,28 @@
 import os
-
-# Absolute path to the project root
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-#
-# Log file full path
-# LOG_FILE = ROOT_DIR + "/application.log"
-#
-# Selenium options
-HEADLESS_BROWSER = True
-BROWSER_OPTIONS = None
+from typing import Any
 
 import yaml
 
-with open("config.yaml", "r") as stream:
+
+_ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+with open(_ROOT_DIR+"/config.yaml", "r") as stream:
     try:
         CONFIG: dict = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
-        print(exc)
-        exit(1)
+        raise exc
 
-CONFIG["General"]["root_directory"] = ROOT_DIR
+CONFIG["General"]["root_directory"] = _ROOT_DIR
 
-CONFIG["General"]["output_directory"] = "/".join([
-    CONFIG["General"]["root_directory"],
-    CONFIG["General"]["output_directory"]
-])
 
-CONFIG["General"]["log_file"] = "/".join([
-    CONFIG["General"]["output_directory"],
-    CONFIG["General"]["log_file"]
-])
+def get_from_config(keypath: list[str], value_type: object | None = None) -> Any:
+    param = CONFIG
+    for key in keypath:
+        param = param.get(key, None)
+        if param is None:
+            return None
+    if value_type is not None:
+        if not isinstance(param, value_type):
+            raise ValueError(f"Incorrect value type. Expected {value_type}, got {type(param)}")
+    return param

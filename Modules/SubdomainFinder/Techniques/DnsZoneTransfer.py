@@ -21,12 +21,12 @@ class DnsZoneTransfer(Engine):
                             subdomain = str(host)
                             subdomains.add(subdomain)
                             self.log_info(f"Discovered subdomain: {subdomain}")
-                    except Exception as e:
-                        self.log_exception(f"Error during zone transfer: {e}")
+                    except Exception:
+                        self.log_exception(f"Error during zone transfer")
         except dns.resolver.NXDOMAIN:
-            self.log_exception("Domain not found.")
+            self.log_exception("Domain not found")
         except dns.exception.Timeout:
-            self.log_exception("DNS query timed out.")
-        except Exception as e:
-            self.log_exception(f"An error occurred: {e}")
+            self.log_exception("DNS query timed out")
+        except Exception:
+            self.log_exception(f"An error occurred")
         return subdomains

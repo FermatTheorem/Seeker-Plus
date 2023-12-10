@@ -2,14 +2,14 @@ from selenium import webdriver
 from HttpClient import RequestHandler
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from config import CONFIG, BROWSER_OPTIONS, HEADLESS_BROWSER
+from config import CONFIG
 
 _conf = CONFIG["Browser"]
 class Browser(RequestHandler):
-    def __init__(self, headless=HEADLESS_BROWSER, options=BROWSER_OPTIONS):
-        self.headless = _conf["headless"]
-        self.options = options or self._get_default_options()
-        self.driver = self._create_driver()
+    # def __init__(self, headless=HEADLESS_BROWSER, options=BROWSER_OPTIONS):
+    #     self.headless = _conf["headless"]
+    #     self.options = options or self._get_default_options()
+    #     self.driver = self._create_driver()
 
     def _get_default_options(self):
         options = webdriver.FirefoxOptions()

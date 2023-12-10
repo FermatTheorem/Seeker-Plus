@@ -4,20 +4,17 @@ from fake_useragent import UserAgent
 from .Logger import Logger
 from .URLHandler import URLHandler
 from typing import List, Optional, Union, Dict, Iterable
-from config import CONFIG
-
-_conf = CONFIG["HttpClient"]
 
 
 class RequestHandler(URLHandler, Logger):
 
     session: Optional[httpx.Client] = None
-    headers: Dict[str, str] = _conf["headers"]
-    response_timeout: float = _conf["response_timeout"]
-    max_parallel_requests: int = _conf["max_parallel_requests"]
+    headers: Dict[str, str] = {}
+    response_timeout: int = 10
+    max_parallel_requests: int = 5
     proxy: Optional[Dict[str, str]] = None
+    use_random_user_agent: bool = True
     logger: Logger = Logger()
-    use_random_user_agent: bool = _conf["use_random_user_agent"]
 
     def set_user_agent(self, user_agent: str) -> None:
         self.headers['User-Agent'] = user_agent
@@ -54,9 +51,6 @@ class RequestHandler(URLHandler, Logger):
         self.headers['User-Agent'] = ua.random
         return self.headers['User-Agent']
 
-    def use_tor_proxy(self, port: int = 9050) -> None:
-        self.proxy = f"socks5://127.0.0.1:{port}"
-
     def get_proxy_dict(self) -> Optional[dict[str, str | int]]:
         res = dict()
         for proxy in self.proxy:
@@ -69,16 +63,6 @@ class RequestHandler(URLHandler, Logger):
                 splitted = proxy.split(":", 1)
                 res["address"] = splitted[0]
                 res["port"] = splitted[1]
-
-
-
-    def check_tor_proxy(self) -> bool:
-        with httpx.Client(proxies=self.proxy) as client:
-            try:
-                response = client.get('https://check.torproject.org/')
-                return "Congratulations" in response.text
-            except Exception as e:
-                return False
 
     def make_request(
             self,
@@ -140,19 +124,3 @@ class RequestHandler(URLHandler, Logger):
         loop = asyncio.get_event_loop()
         responses = loop.run_until_complete(parallel_requests())
         return responses
-
-# # Usage example:
-# handler = RequestHandler()
-#
-# handler.set_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-# handler.set_max_parallel_requests(10)
-#
-# # Make a single request
-# response = handler.make_request('example.com:443', method='get')
-# print(response.status_code, response.text)
-#
-# # Make parallel requests with a limit of 5
-# urls = ['https://example.com', 'https://example.org']
-# responses = handler.make_parallel_requests(urls, method='get', limit=5)
-# for response in responses:
-#     print(response.status_code, response.text)

@@ -3,7 +3,6 @@ Target: https://www.example.com
 General:
  output_directory: Output
  modules_directory: Modules
- log_file: application.log
 
 HttpClient:
  headers:
@@ -14,22 +13,19 @@ HttpClient:
  max_parallel_requests: 5
 
  http_proxy:
-  enabled: 0
+  enabled: false
   http_address: 127.0.0.1
   http_port: 8080
 
  https_proxy:
-  enabled: 0
+  enabled: false
   https_address: 127.0.0.1
   https_port: 8080
 
  socks5_proxy:
-  enabled: 0
+  enabled: false
   socks5_address: 127.0.0.1
   socks5_port: 9050
-  check_tor: true
-
-
 
 Modules:
  SubdomainFinder:
@@ -49,7 +45,7 @@ Modules:
    enabled: true
 
   Bruteforce:
-   enabled: true
+   enabled: false
    wordlist: Misc/subdomains-top1million-5000.txt
    dns_servers:
     - "8.8.8.8"  # Google Primary DNS

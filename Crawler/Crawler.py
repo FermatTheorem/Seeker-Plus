@@ -7,10 +7,7 @@ from Engine.Engine import Engine
 # todo: headless selenium (?) crawling
 
 class Crawler(Engine):
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.pages: dict[str, Page] = {}
+    pages: dict[str, Page] = {}
 
     def process(self) -> None:
         self._wayback_params(self.get_target())

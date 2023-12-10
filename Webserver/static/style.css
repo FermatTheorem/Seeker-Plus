@@ -129,9 +129,9 @@ textarea.form-control {
     position: fixed;
     right: 20px;
     bottom: 20px;
-    font-size: 2rem; /* Even larger font size */
-    padding: 15px 30px; /* Increased padding for a larger button */
-    background-color: #28a745; /* Bootstrap success color */
+    font-size: 2rem;
+    padding: 15px 30px;
+    background-color: #28a745;
     color: white;
     border: none;
     border-radius: 0.25rem;
@@ -148,10 +148,10 @@ textarea.form-control {
 
 .tab button {
     display: block;
-    background-color: #f8f8f8; /* Light background for inactive tabs */
+    background-color: #f8f8f8;
     color: black;
     padding: 10px 20px;
-    width: 200px; /* Wider tabs */
+    width: 200px;
     border: none;
     outline: none;
     text-align: left;
@@ -172,20 +172,20 @@ textarea.form-control {
 }
 
 #Main h1 {
-    color: black; /* Base color for the text */
-    font-weight: bold; /* Make the text bold */
-    font-size: 2.5rem; /* Adjust the size as needed */
-    margin-bottom: 20px; /* Spacing below the title */
+    color: black;
+    font-weight: bold;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
 }
 
 #Main h1 span {
-    color: #dc3545; /* Red color for the plus sign */
-    font-weight: 900; /* Extra bold for the plus sign */
+    color: #dc3545;
+    font-weight: 900;
 }
 
 #Config h1 {
-    color: black; /* Base color for the text */
-    font-weight: bold; /* Bold text */
-    font-size: 2.5rem; /* Same font size as the main title */
-    margin-bottom: 20px; /* Spacing below the title */
+    color: black;
+    font-weight: bold;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
 }

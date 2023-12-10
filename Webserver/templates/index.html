@@ -3,16 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Config Editor</title>
-    <!-- Bootstrap CSS -->
+    <title>Main Page</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom styles -->
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
     <div class="container mt-4">
-        <h1>Configuration Editor</h1>
-        <div id="config-container"></div>
+        <div class="tab">
+            <button class="tablinks" onclick="openPage('Main', this)">Main</button>
+            <button class="tablinks" onclick="openPage('Config', this)">Config</button>
+        </div>
+
+        <div id="Main" class="tabcontent">
+            <h1>Seeker <span>+</span></h1>
+            <div id="main-container"></div>
+        </div>
+
+
+        <div id="Config" class="tabcontent" style="display:none">
+            <h1>Configuration</h1>
+            <div id="config-container"></div>
+        </div>
     </div>
     <script src="static/script.js"></script>
 </body>

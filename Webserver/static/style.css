@@ -21,42 +21,44 @@ textarea.form-control {
 
 .card {
     transition: background-color 0.3s;
-    position: relative; /* Add position relative */
+    position: relative;
 }
 
-/* This rule ensures only the topmost card hovered changes color */
 .card:hover {
     background-color: #f8f9fa;
 }
 
 .card:hover > .card {
-    background-color: transparent; /* Make child cards transparent on hover */
+    background-color: transparent;
 }
 
-/* Optional: Add a shadow to the hovered card for better emphasis */
 .card:hover {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Reset the shadow for child cards */
 .card:hover > .card {
     box-shadow: none;
 }
 
 .btn-delete {
-    margin-top: -10px; /* Adjust position if needed */
+    margin-top: -10px;
     margin-right: -10px;
+}
+
+.btn-block {
+    width: 80%;
+    margin: auto;
 }
 
 .add-new-container {
     text-align: center;
     cursor: pointer;
-    background-color: #f0f0f0; /* Light background for visibility */
+    background-color: #f0f0f0;
 }
 
 .add-new-container .plus-sign {
-    font-size: 24px; /* Large plus sign */
-    color: #28a745; /* Green color or choose as per your design */
+    font-size: 24px;
+    color: #28a745;
 }
 
 .modal-background {
@@ -74,26 +76,116 @@ textarea.form-control {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 60%; /* Increased width */
-    max-width: 500px; /* Maximum width */
+    width: 60%;
+    max-width: 500px;
     padding: 20px;
     background-color: white;
-    border-radius: 0.25rem; /* Rounded edges */
+    border-radius: 0.25rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 1001;
 }
 
-/* Additional styles for buttons and elements inside the modal */
-.btn-block {
-    width: 80%; /* Wider buttons */
-    margin: auto; /* Center align buttons */
-}
-
 .modal-card input, .modal-card select {
-    width: 80%; /* Wider input and select */
-    margin: auto; /* Center align input and select */
+    width: 80%;
+    margin: auto;
 }
 
 .modal-card h5 {
-    margin-bottom: 20px; /* More space below the title */
+    margin-bottom: 20px;
+}
+
+.buttons-container {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.btn-save-config, .btn-cancel-config {
+    width: 200%;
+    margin: 5px;
+    font-size: 150%;
+    padding: 10px 20px;
+}
+
+.btn-save-config {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-cancel-config {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-start-process {
+    width: 13%;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    font-size: 2rem; /* Even larger font size */
+    padding: 15px 30px; /* Increased padding for a larger button */
+    background-color: #28a745; /* Bootstrap success color */
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.tab {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.tab button {
+    display: block;
+    background-color: #f8f8f8; /* Light background for inactive tabs */
+    color: black;
+    padding: 10px 20px;
+    width: 200px; /* Wider tabs */
+    border: none;
+    outline: none;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 5px;
+}
+
+.tab button:hover {
+    background-color: #ddd;
+}
+
+.tab button.active {
+    background-color: #666;
+    color: white;
+}
+
+#Main h1 {
+    color: black; /* Base color for the text */
+    font-weight: bold; /* Make the text bold */
+    font-size: 2.5rem; /* Adjust the size as needed */
+    margin-bottom: 20px; /* Spacing below the title */
+}
+
+#Main h1 span {
+    color: #dc3545; /* Red color for the plus sign */
+    font-weight: 900; /* Extra bold for the plus sign */
+}
+
+#Config h1 {
+    color: black; /* Base color for the text */
+    font-weight: bold; /* Bold text */
+    font-size: 2.5rem; /* Same font size as the main title */
+    margin-bottom: 20px; /* Spacing below the title */
 }
